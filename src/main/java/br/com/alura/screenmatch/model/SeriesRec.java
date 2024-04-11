@@ -3,11 +3,9 @@ package br.com.alura.screenmatch.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record SeasonRec(@JsonProperty("Title") String title,
-                        @JsonProperty("Season") String seasonNumber,
+public record SeriesRec(@JsonProperty("Title") String title,
                         @JsonProperty("totalSeasons") Integer totalSeasons,
-                        @JsonProperty("Episodes") ArrayList<EpisodeRec> episodes) {}
+                        @JsonProperty("imdbRating") String rating,
+                        @JsonProperty("Type") String type)
+{}
