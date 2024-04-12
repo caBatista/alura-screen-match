@@ -1,11 +1,14 @@
 package br.com.alura.screenmatch.main;
 
+import br.com.alura.screenmatch.model.Episode;
 import br.com.alura.screenmatch.model.SeasonRec;
 import br.com.alura.screenmatch.model.SeriesRec;
 import br.com.alura.screenmatch.service.ConsumeAPI;
 import br.com.alura.screenmatch.service.ConvertData;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -61,10 +64,19 @@ public class Main {
             seasons.add(seasonRec);
         }
 
-        seasons.forEach(s -> {
-            System.out.println("\nSeason " + s.seasonNumber() + " - \n");
-            s.episodes().forEach(e -> System.out.println("Episode " + e.episode() + " - " + e.title()));
-        });
+        List<Episode> episodes = seasons.stream()
+                .flatMap(s -> s.episodes().stream()
+                        .map(r -> new Episode(Integer.parseInt(s.seasonNumber()),r)))
+                .toList();
+
+        episodes.forEach(System.out::println);
+
+        System.out.println("\nBest 10 episodes -\n");
+
+        episodes.stream()
+                .sorted(Comparator.comparing(Episode::getRating).reversed())
+                .limit(10)
+                .forEach(System.out::println);
     }
 
     public String buildURI(String titleName) {
@@ -82,19 +94,6 @@ public class Main {
         return PAGE_MESSAGE +
                titleMessage +
                seasonMessage +
-               API_MESSAGE;
-    }
-
-    public String buildURI(String titleName, int seasonNumber, int episodeNumber) {
-
-        var titleMessage = titleName.toLowerCase().replace(' ', '-');
-        var seasonMessage = "&season=" + seasonNumber;
-        var episodeMessage = "&episode=" + episodeNumber;
-
-        return PAGE_MESSAGE +
-               titleMessage +
-               seasonMessage +
-               episodeMessage +
                API_MESSAGE;
     }
 }
