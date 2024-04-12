@@ -33,18 +33,11 @@ public class Main {
 
         SeriesRec seriesRec = converter.getData(json, SeriesRec.class);
 
-        System.out.println(json);
-
         var titleType = seriesRec.type();
-
-        System.out.println(titleType);
-
         if (!titleType.equals("series")) {
             System.out.println("The specified title is a " + titleType + ", not a series.\nFinishing application.");
             return;
         }
-
-        System.out.println(seriesRec);
 
         var seasonNumber = 1;
 
@@ -68,8 +61,10 @@ public class Main {
             seasons.add(seasonRec);
         }
 
-        seasons
-//        seasons.forEach(s -> s.episodes().forEach(e -> System.out.println(e.title())));
+        seasons.forEach(s -> {
+            System.out.println("\nSeason " + s.seasonNumber() + " - \n");
+            s.episodes().forEach(e -> System.out.println("Episode " + e.episode() + " - " + e.title()));
+        });
     }
 
     public String buildURI(String titleName) {
