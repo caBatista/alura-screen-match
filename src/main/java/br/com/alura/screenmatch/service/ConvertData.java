@@ -3,13 +3,13 @@ package br.com.alura.screenmatch.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class ConverteDados implements IConverteDados {
+public class ConvertData implements IConverData{
     private ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public <T> T obterDados(String json, Class<T> classe) {
+    public <T> T getData(String json, Class<T> className) {
         try {
-            return mapper.readValue(json, classe);
+            return mapper.readValue(json, className);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
