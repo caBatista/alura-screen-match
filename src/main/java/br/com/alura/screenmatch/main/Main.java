@@ -1,7 +1,7 @@
 package br.com.alura.screenmatch.main;
 
-import br.com.alura.screenmatch.model.Episode;
 import br.com.alura.screenmatch.model.SeasonRec;
+import br.com.alura.screenmatch.model.Series;
 import br.com.alura.screenmatch.model.SeriesRec;
 import br.com.alura.screenmatch.service.ConsumeAPI;
 import br.com.alura.screenmatch.service.ConvertData;
@@ -12,74 +12,121 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    private final String  PAGE_MESSAGE = "https://www.omdbapi.com/?t=";
-    private final String API_MESSAGE = "&apikey=347e1780";
-
+    
+    private static final  String  PAGE_MESSAGE = "https://www.omdbapi.com/?t=";
+    private static final  String API_MESSAGE = "&apikey=347e1780";
+    
     private final ConsumeAPI consumeAPI = new ConsumeAPI();
-    ConvertData converter = new ConvertData();
-
+    private final Scanner scanner = new Scanner(System.in);
+    
+    private final ConvertData converter = new ConvertData();
+    
+    private final List<Series> searchedSeries = new ArrayList<>();
+    
     public void showMenu(){
-        Scanner scanner = new Scanner(System.in);
-
         System.out.println("""
                 Welcome to our TV series details application! \uD83D\uDCFA\s
                 Get ready to dive into the captivating world of your favorite shows.\s
                 Whether you're searching for plot summaries, cast information, or simply curious trivia, you're in the right place.\s
                 Sit back, relax, and let's embark on an exciting journey through the realm of television together!""");
 
-        System.out.println("\nPlease specify the name of the TV series that you wanna know more about:");
+        var option = -1;
+        
+        while (option != 0) {
+            System.out.println("""
+                    
+                    Please select one of the following options:
+                    1 - Search for a TV series details
+                    2 - Search for a TV series season details
+                    3 - Print the searched TV series
+                    0 - Exit""");
+
+            while (!scanner.hasNextInt()) {
+                System.out.println("Invalid option. Please try again.");
+                scanner.next();
+            }
+            
+            option = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (option) {
+                case 1 -> searchSeries();
+                case 2 -> searchSeason();
+                case 3 -> printSearchedSeries();
+                case 0 -> System.out.println("Goodbye! \uD83D\uDC4B");
+                default -> System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+    
+    private void searchSeries() {
+        System.out.println("Enter the name of the TV series you want to search for:");
         var titleName = scanner.nextLine();
 
-        var uri = buildURI(titleName);
+        var series = getSeries(titleName);
+        System.out.println(series != null ? series : "Series not found.");
+    }
+    
+    private void searchSeason() {
+        System.out.println("Enter the name of the TV series you want to search for:");
+        var titleName = scanner.nextLine();
+        var series = getSeries(titleName);
 
-        var json = consumeAPI.getData(uri);
-
-        SeriesRec seriesRec = converter.getData(json, SeriesRec.class);
-
-        var titleType = seriesRec.type();
-        if (!titleType.equals("series")) {
-            System.out.println("The specified title is a " + titleType + ", not a series.\nFinishing application.");
+        if (series == null) {
+            System.out.println("Series not found.");
             return;
         }
-
-        var seasonNumber = 1;
-
-        uri = buildURI(titleName, seasonNumber);
-
-        json = consumeAPI.getData(uri);
-
-        SeasonRec seasonRec = converter.getData(json, SeasonRec.class);
-
-        var seasons = new ArrayList<SeasonRec>();
-        seasons.add(seasonRec);
-
-        var totalSeasons = seasonRec.totalSeasons();
-
-        for(seasonNumber = 2; seasonNumber <= totalSeasons; seasonNumber++){
-            uri = buildURI(titleName, seasonNumber);
-
-            json = consumeAPI.getData(uri);
-
-            seasonRec = converter.getData(json, SeasonRec.class);
-            seasons.add(seasonRec);
+        
+        List<SeasonRec> seasons = new ArrayList<>();
+        
+        for(int i = 1; i <= series.getTotalSeasons(); i++){
+            seasons.add(getSeason(titleName, i));
         }
-
-        List<Episode> episodes = seasons.stream()
-                .flatMap(s -> s.episodes().stream()
-                        .map(r -> new Episode(Integer.parseInt(s.seasonNumber()),r)))
-                .toList();
-
-        episodes.forEach(System.out::println);
-
-        System.out.println("\nBest 10 episodes -\n");
-
-        episodes.stream()
-                .sorted(Comparator.comparing(Episode::getRating).reversed())
-                .limit(10)
-                .forEach(System.out::println);
+        
+        seasons.stream()
+               .sorted(Comparator.comparing(SeasonRec::seasonNumber))
+               .forEach(System.out::println);
     }
+    
+    private void printSearchedSeries() {
+        searchedSeries.stream()
+                        .sorted(Comparator.comparing(Series::getRating).reversed())
+                        .forEach(System.out::println);
+    }
+    
+    private Series getSeries(String titleName) {
+        var uri = buildURI(titleName);
+        var json = consumeAPI.getData(uri);
+        
+        if (!json.contains("Error")) {
+            var seriesRec = converter.getData(json, SeriesRec.class);
+            var series = new Series(seriesRec);
+            
+            var seriesExists = searchedSeries.stream()
+                                             .anyMatch(s -> s.getTitle().equals(series.getTitle()));
+            
+            if(!seriesExists){
+                searchedSeries.add(series);
+            }
+            
+            return series;
+        } else {
+            return null;
+        }
+    }
+    
+    private SeasonRec getSeason(String titleName, int seasonNumber) {
+        var uri = buildURI(titleName, seasonNumber);
+        var json = consumeAPI.getData(uri);
 
-    public String buildURI(String titleName) {
+        if (json != null) {
+            return converter.getData(json, SeasonRec.class);
+        } else {
+            return null;
+        }
+    }
+    
+    private String buildURI(String titleName) {
         var titleMessage = titleName.toLowerCase().replace(' ', '-');
 
         return PAGE_MESSAGE +
@@ -87,7 +134,7 @@ public class Main {
                API_MESSAGE;
     }
 
-    public String buildURI(String titleName, int seasonNumber) {
+    private String buildURI(String titleName, int seasonNumber) {
         var titleMessage = titleName.toLowerCase().replace(' ', '-');
         var seasonMessage = "&Season=" + seasonNumber;
 

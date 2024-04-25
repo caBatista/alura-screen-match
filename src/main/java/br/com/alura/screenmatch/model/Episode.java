@@ -20,27 +20,7 @@ public class Episode {
         }
         this.releaseDate = LocalDate.parse(episodeRec.releaseDate());
     }
-
-    public Integer getSeason() {
-        return season;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public Integer getEpisodeNumber() {
-        return episodeNumber;
-    }
-
-    public Double getRating() {
-        return rating;
-    }
-
-    public LocalDate getReleaseDate() {
-        return releaseDate;
-    }
-
+    
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer("Episode{");

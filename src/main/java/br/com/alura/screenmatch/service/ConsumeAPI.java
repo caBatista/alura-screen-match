@@ -19,7 +19,7 @@ public class ConsumeAPI {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
+        
         return response.body();
     }
 }
