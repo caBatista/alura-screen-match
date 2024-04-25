@@ -1,16 +1,35 @@
 package br.com.alura.screenmatch.model;
 
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.OptionalDouble;
 
+@Entity
+@Table(name = "series")
 public class Series {
-	private final String title;
-	private final Integer totalSeasons;
-	private final Double rating;
-	private final String type;
-	private final Genre genre;
-	private final String actors;
-	private final String poster;
-	private final String plot;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private long id;
+	
+	@Column(unique = true)
+	private String title;
+	
+	private Integer totalSeasons;
+	
+	private Double rating;
+	private String type;
+	
+	@Enumerated(EnumType.STRING)
+	private Genre genre;
+	
+	private String actors;
+	private String poster;
+	private String plot;
+	
+	@Transient
+	private List<Episode> episodes = new ArrayList<>();
 	
 	public Series(SeriesRec seriesRec){
 		this.title = seriesRec.title();
@@ -21,6 +40,9 @@ public class Series {
 		this.actors = seriesRec.actors();
 		this.poster = seriesRec.poster();
 		this.plot = seriesRec.plot();
+	}
+	
+	public Series() {
 	}
 	
 	public String getTitle() {
@@ -38,7 +60,8 @@ public class Series {
 	@Override
 	public String toString() {
 		return "Series{" +
-				"title='" + title + '\'' +
+				"id=" + id +
+				", title='" + title + '\'' +
 				", totalSeasons=" + totalSeasons +
 				", rating=" + rating +
 				", type='" + type + '\'' +

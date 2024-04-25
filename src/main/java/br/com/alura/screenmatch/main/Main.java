@@ -3,6 +3,7 @@ package br.com.alura.screenmatch.main;
 import br.com.alura.screenmatch.model.SeasonRec;
 import br.com.alura.screenmatch.model.Series;
 import br.com.alura.screenmatch.model.SeriesRec;
+import br.com.alura.screenmatch.repository.SeriesRepository;
 import br.com.alura.screenmatch.service.ConsumeAPI;
 import br.com.alura.screenmatch.service.ConvertData;
 
@@ -21,7 +22,11 @@ public class Main {
     
     private final ConvertData converter = new ConvertData();
     
-    private final List<Series> searchedSeries = new ArrayList<>();
+    private final SeriesRepository seriesRepository;
+    
+    public Main(SeriesRepository seriesRepository) {
+        this.seriesRepository = seriesRepository;
+    }
     
     public void showMenu(){
         System.out.println("""
@@ -89,9 +94,10 @@ public class Main {
     }
     
     private void printSearchedSeries() {
+        List<Series> searchedSeries = seriesRepository.findAll();
         searchedSeries.stream()
-                        .sorted(Comparator.comparing(Series::getRating).reversed())
-                        .forEach(System.out::println);
+                .sorted(Comparator.comparing(Series :: getRating).reversed())
+                .forEach(System.out::println);
     }
     
     private Series getSeries(String titleName) {
@@ -102,12 +108,7 @@ public class Main {
             var seriesRec = converter.getData(json, SeriesRec.class);
             var series = new Series(seriesRec);
             
-            var seriesExists = searchedSeries.stream()
-                                             .anyMatch(s -> s.getTitle().equals(series.getTitle()));
-            
-            if(!seriesExists){
-                searchedSeries.add(series);
-            }
+            seriesRepository.save(series);
             
             return series;
         } else {
