@@ -1,5 +1,6 @@
 package br.com.alura.screenmatch.main;
 
+import br.com.alura.screenmatch.model.Episode;
 import br.com.alura.screenmatch.model.SeasonRec;
 import br.com.alura.screenmatch.model.Series;
 import br.com.alura.screenmatch.model.SeriesRec;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
     
@@ -23,6 +25,8 @@ public class Main {
     private final ConvertData converter = new ConvertData();
     
     private final SeriesRepository seriesRepository;
+    
+    private List<Series> searchedSeries = new ArrayList<>();
     
     public Main(SeriesRepository seriesRepository) {
         this.seriesRepository = seriesRepository;
@@ -65,53 +69,91 @@ public class Main {
     }
     
     private void searchSeries() {
-        System.out.println("Enter the name of the TV series you want to search for:");
-        var titleName = scanner.nextLine();
-
-        var series = getSeries(titleName);
-        System.out.println(series != null ? series : "Series not found.");
+        System.out.println("Enter the name of the TV series you're looking for, or enter '0' to return to the main menu:");
+        var searchedTitle = scanner.nextLine();
+        
+        try {
+            if (Integer.valueOf(searchedTitle) == 0) {
+                return;
+            }
+        } catch (NumberFormatException e){}
+        
+        var series = getSeries(searchedTitle);
+        System.out.println(series != null ? series : "Sorry, we couldn't find the series you're looking for. Please check the spelling and try again.");
     }
     
     private void searchSeason() {
-        System.out.println("Enter the name of the TV series you want to search for:");
-        var titleName = scanner.nextLine();
-        var series = getSeries(titleName);
+        System.out.println("Enter the ID of the TV series you're looking for, or enter '0' to return to the main menu:");
+        printSearchedSeries();
+        var searchedId = scanner.nextLong();
+        
+        try {
+            if (Long.valueOf(searchedId) == 0) {
+                return;
+            }
+        } catch (NumberFormatException e){}
+        
+        var series = searchedSeries.stream()
+                .filter(s -> s.getId() == searchedId)
+                .findFirst();
 
-        if (series == null) {
-            System.out.println("Series not found.");
+        if (series.isEmpty()) {
+            System.out.println("Not a valid ID.");
             return;
         }
         
+        var findedSeries = series.get();
+        
         List<SeasonRec> seasons = new ArrayList<>();
         
-        for(int i = 1; i <= series.getTotalSeasons(); i++){
-            seasons.add(getSeason(titleName, i));
+        for(int i = 1; i <= findedSeries.getTotalSeasons(); i++){
+            seasons.add(getSeason(findedSeries.getTitle(), i));
         }
         
         seasons.stream()
                .sorted(Comparator.comparing(SeasonRec::seasonNumber))
                .forEach(System.out::println);
+	    
     }
     
     private void printSearchedSeries() {
-        List<Series> searchedSeries = seriesRepository.findAll();
+        searchedSeries = seriesRepository.findAll();
         searchedSeries.stream()
                 .sorted(Comparator.comparing(Series :: getRating).reversed())
                 .forEach(System.out::println);
     }
     
     private Series getSeries(String titleName) {
-        var uri = buildURI(titleName);
-        var json = consumeAPI.getData(uri);
-        
-        if (!json.contains("Error")) {
-            var seriesRec = converter.getData(json, SeriesRec.class);
-            var series = new Series(seriesRec);
+        try {
+            var uri = buildURI(titleName);
+            var json = consumeAPI.getData(uri);
             
-            seriesRepository.save(series);
-            
-            return series;
-        } else {
+            if (!json.contains("Error")) {
+                var seriesRec = converter.getData(json, SeriesRec.class);
+                var series = new Series(seriesRec);
+                
+                List<SeasonRec> seasons = new ArrayList<>();
+                
+                for(int i = 1; i <= series.getTotalSeasons(); i++){
+                    seasons.add(getSeason(series.getTitle(), i));
+                }
+                
+                List<Episode> episodes = seasons.stream()
+                        .flatMap(s -> s.episodes().stream()
+                                .map(e -> new Episode(Integer.valueOf(s.seasonNumber()), e)))
+                        .collect(Collectors.toList());
+                
+                series.setEpisodes(episodes);
+                seriesRepository.save(series);
+                
+                return series;
+            } else {
+                System.out.println("Error in API response: " + json);
+                return null;
+            }
+        } catch (Exception e) {
+            System.out.println("Error in getSeries: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }

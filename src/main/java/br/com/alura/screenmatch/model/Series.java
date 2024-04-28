@@ -28,7 +28,7 @@ public class Series {
 	private String poster;
 	private String plot;
 	
-	@Transient
+	@OneToMany(mappedBy = "series", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private List<Episode> episodes = new ArrayList<>();
 	
 	public Series(SeriesRec seriesRec){
@@ -57,6 +57,19 @@ public class Series {
 		return totalSeasons;
 	}
 	
+	public long getId() {
+		return id;
+	}
+	
+	public void setEpisodes(List<Episode> episodes){
+		episodes.forEach(e -> e.setSeries(this));
+		this.episodes = episodes;
+	}
+	
+	public List<Episode> getEpisodes() {
+		return episodes;
+	}
+	
 	@Override
 	public String toString() {
 		return "Series{" +
@@ -69,6 +82,7 @@ public class Series {
 				", actors='" + actors + '\'' +
 				", poster='" + poster + '\'' +
 				", plot='" + plot + '\'' +
+				", episodes=" + episodes +
 				'}';
 	}
 }
