@@ -72,17 +72,18 @@ public class Series {
 	
 	@Override
 	public String toString() {
-		return "Series{" +
-				"id=" + id +
-				", title='" + title + '\'' +
-				", totalSeasons=" + totalSeasons +
-				", rating=" + rating +
-				", type='" + type + '\'' +
-				", genre=" + genre +
-				", actors='" + actors + '\'' +
-				", poster='" + poster + '\'' +
-				", plot='" + plot + '\'' +
-				", episodes=" + episodes +
-				'}';
+		return id + ". " + title + ":\n" +
+				"       Total Seasons: " + totalSeasons + "\n" +
+				"       Rating: " + rating + "\n" +
+				"       Type: " + type + "\n" +
+				"       Genre: " + genre + "\n" +
+				"       Actors: " + actors + "\n" +
+				"       Poster: " + poster + "\n" +
+				"       Plot: " + plot + "\n" +
+				"       Episode Count: " + (episodes != null ? episodes.size() : 0);
+	}
+	
+	public String menuToString() {
+		return id +". " + title;
 	}
 }

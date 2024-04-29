@@ -8,10 +8,8 @@ import br.com.alura.screenmatch.repository.SeriesRepository;
 import br.com.alura.screenmatch.service.ConsumeAPI;
 import br.com.alura.screenmatch.service.ConvertData;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.io.IOException;
+import java.util.*;
 
 public class Main {
     
@@ -41,13 +39,13 @@ public class Main {
         var option = -1;
         
         while (option != 0) {
-            System.out.println("""
-                    
-                    Please select one of the following options:
-                    1 - Search for a TV series details
-                    2 - Search for a TV series season details
-                    3 - Print the searched TV series
-                    0 - Exit""");
+            System.out.println("\nPlease select one of the following options by entering the corresponding number:");
+            System.out.println("1 - Search for a TV series details");
+            System.out.println("2 - Search for a TV series season details");
+            System.out.println("3 - Print the searched TV series");
+            System.out.println("4 - Search for a new TV series");
+            System.out.println("0 - Exit the application");
+            System.out.println();
 
             while (!scanner.hasNextInt()) {
                 System.out.println("Invalid option. Please try again.");
@@ -58,57 +56,69 @@ public class Main {
             scanner.nextLine();
 
             switch (option) {
-                case 1 -> searchSeries();
+                case 1 -> searchExistingSeries();
                 case 2 -> searchSeason();
                 case 3 -> printSearchedSeries();
+                case 4 -> searchNewSeries();
                 case 0 -> System.out.println("Goodbye! \uD83D\uDC4B");
                 default -> System.out.println("Invalid option. Please try again.");
             }
         }
     }
     
-    private void searchSeries() {
-        System.out.println("Enter the name of the TV series you're looking for, or enter '0' to return to the main menu:");
-        var searchedTitle = scanner.nextLine();
+    private void searchExistingSeries(){
+        var series = searchSeries();
         
-        try {
-            if (Integer.parseInt(searchedTitle) == 0) {
-                return;
-            }
-        } catch (NumberFormatException e){
-            return;
-        }
+        System.out.println(series);
         
-        var series = getSeries(searchedTitle);
-        System.out.println(series != null ? series : "Sorry, we couldn't find the series you're looking for. Please check the spelling and try again.");
+        waitForEnter();
     }
     
-    private void searchSeason() {
+    private Series searchSeries(){
         System.out.println("Enter the ID of the TV series you're looking for, or enter '0' to return to the main menu:");
         printSearchedSeries();
         
-        long searchedId;
-        
-        try {
-            searchedId = scanner.nextLong();
-        } catch (NumberFormatException e){
-            return;
+        if(!scanner.hasNextInt()){
+            return null;
         }
         
+        long searchedId = scanner.nextLong();
+        
         if (searchedId == 0) {
-            return;
+            return null;
         }
         
         var series = searchedSeries.stream()
                 .filter(s -> s.getId() == searchedId)
                 .findFirst();
-
+        
         if (series.isEmpty()) {
             System.out.println("Not a valid ID.");
+            return null;
+        }
+        
+        return series.get();
+    }
+    
+    private void searchNewSeries() {
+        System.out.println("Enter the name of the TV series you're looking for, or enter '0' to return to the main menu:");
+        if(scanner.hasNextInt() && scanner.nextInt() == 0){
             return;
         }
         
-        var findedSeries = series.get();
+        var titleToSearch = scanner.nextLine();
+        
+        var series = importSeries(titleToSearch);
+        System.out.println(series != null ? series : "");
+        waitForEnter();
+    }
+    
+    private void searchSeason() {
+        var findedSeries = searchSeries();
+        
+        if(findedSeries == null){
+            return;
+        }
         
         List<SeasonRec> seasons = new ArrayList<>();
         
@@ -119,19 +129,30 @@ public class Main {
         seasons.stream()
                .sorted(Comparator.comparing(SeasonRec::seasonNumber))
                .forEach(System.out::println);
+
+        waitForEnter();
 	    
     }
     
     private void printSearchedSeries() {
         searchedSeries = seriesRepository.findAll();
         searchedSeries.stream()
-                .sorted(Comparator.comparing(Series :: getRating).reversed())
-                .forEach(System.out::println);
+                .sorted(Comparator.comparing(Series :: getId))
+                .forEach(e -> System.out.println(e.menuToString()));
+        
     }
     
-    private Series getSeries(String titleName) {
+    private Series importSeries(String title) {
         try {
-            var uri = buildURI(titleName);
+            var databaseSeries = seriesRepository.findByTitleContainsIgnoreCase(title);
+            
+            if(!databaseSeries.isEmpty()){
+                System.out.println("That series already exists on the database:");
+                databaseSeries.forEach(e -> System.out.print("\n" + e.menuToString()));
+                return null;
+            }
+            
+            var uri = buildURI(title);
             var json = consumeAPI.getData(uri);
             
             if (!json.contains("Error")) {
@@ -158,7 +179,7 @@ public class Main {
                 return null;
             }
         } catch (Exception e) {
-            System.out.println("Error in getSeries: " + e.getMessage());
+            System.out.println("Error in importSeries: " + e.getMessage());
             return null;
         }
     }
@@ -173,7 +194,20 @@ public class Main {
             return null;
         }
     }
-    
+        
+    private void waitForEnter() {
+        System.out.println("\nPress ENTER to return to the menu...");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            System.out.println("ERROR");
+        }
+        
+        for (int i = 0; i < 50; i++) {
+            System.out.println();
+        }
+    }
+
     private String buildURI(String titleName) {
         var titleMessage = titleName.toLowerCase().replace(' ', '-');
 
