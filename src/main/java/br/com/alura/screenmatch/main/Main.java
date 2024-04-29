@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 public class Main {
     
@@ -73,10 +72,12 @@ public class Main {
         var searchedTitle = scanner.nextLine();
         
         try {
-            if (Integer.valueOf(searchedTitle) == 0) {
+            if (Integer.parseInt(searchedTitle) == 0) {
                 return;
             }
-        } catch (NumberFormatException e){}
+        } catch (NumberFormatException e){
+            return;
+        }
         
         var series = getSeries(searchedTitle);
         System.out.println(series != null ? series : "Sorry, we couldn't find the series you're looking for. Please check the spelling and try again.");
@@ -85,13 +86,18 @@ public class Main {
     private void searchSeason() {
         System.out.println("Enter the ID of the TV series you're looking for, or enter '0' to return to the main menu:");
         printSearchedSeries();
-        var searchedId = scanner.nextLong();
+        
+        long searchedId;
         
         try {
-            if (Long.valueOf(searchedId) == 0) {
-                return;
-            }
-        } catch (NumberFormatException e){}
+            searchedId = scanner.nextLong();
+        } catch (NumberFormatException e){
+            return;
+        }
+        
+        if (searchedId == 0) {
+            return;
+        }
         
         var series = searchedSeries.stream()
                 .filter(s -> s.getId() == searchedId)
@@ -141,7 +147,7 @@ public class Main {
                 List<Episode> episodes = seasons.stream()
                         .flatMap(s -> s.episodes().stream()
                                 .map(e -> new Episode(Integer.valueOf(s.seasonNumber()), e)))
-                        .collect(Collectors.toList());
+                        .toList();
                 
                 series.setEpisodes(episodes);
                 seriesRepository.save(series);
@@ -153,7 +159,6 @@ public class Main {
             }
         } catch (Exception e) {
             System.out.println("Error in getSeries: " + e.getMessage());
-            e.printStackTrace();
             return null;
         }
     }
