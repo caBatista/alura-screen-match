@@ -69,8 +69,14 @@ public class Main {
     private void searchExistingSeries(){
         var series = searchSeries();
         
-        System.out.println(series);
+        if(series == null){
+            for (int i = 0; i < 50; i++) {
+                System.out.println();
+            }
+            return;
+        }
         
+        System.out.println(series);
         waitForEnter();
     }
     
@@ -117,6 +123,9 @@ public class Main {
         var findedSeries = searchSeries();
         
         if(findedSeries == null){
+            for (int i = 0; i < 50; i++) {
+                System.out.println();
+            }
             return;
         }
         
@@ -136,6 +145,12 @@ public class Main {
     
     private void printSearchedSeries() {
         searchedSeries = seriesRepository.findAll();
+        
+        if(searchedSeries.isEmpty()){
+            System.out.println("No series created yet. Import a series to see it here");
+            return;
+        }
+        
         searchedSeries.stream()
                 .sorted(Comparator.comparing(Series :: getId))
                 .forEach(e -> System.out.println(e.menuToString()));
