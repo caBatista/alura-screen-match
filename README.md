@@ -1,2 +1,2 @@
-# alura-screen-match
-Screen Match Project - Alura Exercise
+# screenmatch-series-backend
+Screen Match Project - Alura Exercise - Backend Repository
