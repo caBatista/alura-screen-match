@@ -22,10 +22,6 @@ public class SeriesService {
 		return convertToDTO(repository.findTop5ByOrderByRatingDesc());
 	}
 	
-	public List<SeriesDTO> findNewReleases() {
-		return convertToDTO(repository.findByReleaseDate("2024"));
-	}
-	
 	private List<SeriesDTO> convertToDTO(List<Series> series) {
 		return series.stream()
 				.map(s -> new SeriesDTO(s.getId(),
