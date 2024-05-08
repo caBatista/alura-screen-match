@@ -70,6 +70,26 @@ public class Series {
 		return episodes;
 	}
 	
+	public String getType() {
+		return type;
+	}
+	
+	public Genre getGenre() {
+		return genre;
+	}
+	
+	public String getActors() {
+		return actors;
+	}
+	
+	public String getPoster() {
+		return poster;
+	}
+	
+	public String getPlot() {
+		return plot;
+	}
+	
 	@Override
 	public String toString() {
 		return id + ". " + title + ":\n" +
