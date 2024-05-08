@@ -43,6 +43,18 @@ public class Episode {
         return series;
     }
     
+    public Integer getSeason() {
+        return season;
+    }
+    
+    public String getTitle() {
+        return title;
+    }
+    
+    public Integer getEpisodeNumber() {
+        return episodeNumber;
+    }
+    
     @Override
     public String toString() {
         return "Episode{" +
