@@ -78,4 +78,22 @@ public class SeriesService {
 			return Collections.emptyList();
 		}
 	}
+	
+	public List<EpisodeDTO> findSeasonEpisodes(Long id, Integer seasonNumber) {
+		var series = repository.findById(id);
+		
+		if(series.isPresent()){
+			var s = series.get();
+			
+			return s.getEpisodes().stream()
+					.filter(e -> e.getSeason().equals(seasonNumber))
+					.map(e -> new EpisodeDTO(
+							e.getSeason(),
+							e.getTitle(),
+							e.getEpisodeNumber()))
+					.toList();
+		} else {
+			return Collections.emptyList();
+		}
+	}
 }
