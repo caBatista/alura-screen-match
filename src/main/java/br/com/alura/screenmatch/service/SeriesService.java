@@ -2,6 +2,7 @@ package br.com.alura.screenmatch.service;
 
 import br.com.alura.screenmatch.dto.EpisodeDTO;
 import br.com.alura.screenmatch.dto.SeriesDTO;
+import br.com.alura.screenmatch.model.Episode;
 import br.com.alura.screenmatch.model.Genre;
 import br.com.alura.screenmatch.model.Series;
 import br.com.alura.screenmatch.repository.SeriesRepository;
@@ -9,6 +10,7 @@ import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -73,7 +75,8 @@ public class SeriesService {
 					.map(e -> new EpisodeDTO(
 							e.getSeason(),
 							e.getTitle(),
-							e.getEpisodeNumber()))
+							e.getEpisodeNumber(),
+							e.getRating()))
 					.toList();
 		} else {
 			return Collections.emptyList();
@@ -91,7 +94,8 @@ public class SeriesService {
 					.map(e -> new EpisodeDTO(
 							e.getSeason(),
 							e.getTitle(),
-							e.getEpisodeNumber()))
+							e.getEpisodeNumber(),
+							e.getRating()))
 					.toList();
 		} else {
 			return Collections.emptyList();
@@ -102,5 +106,25 @@ public class SeriesService {
 		var genre = Genre.fromString(category);
 		
 		return convertToDTO(repository.findByGenre(genre));
+	}
+	
+	public List<EpisodeDTO> findTopEpisodes(Long id) {
+		var series = repository.findById(id);
+		
+		if(series.isPresent()){
+			var s = series.get();
+			
+			return s.getEpisodes().stream()
+					.sorted(Comparator.comparing(Episode::getRating).reversed())
+					.limit(5)
+					.map(e -> new EpisodeDTO(
+							e.getSeason(),
+							e.getTitle(),
+							e.getEpisodeNumber(),
+							e.getRating()))
+					.toList();
+		} else {
+			return Collections.emptyList();
+		}
 	}
 }

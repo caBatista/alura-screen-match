@@ -55,6 +55,10 @@ public class Episode {
         return episodeNumber;
     }
     
+    public Double getRating() {
+        return rating;
+    }
+    
     @Override
     public String toString() {
         return "Episode{" +
