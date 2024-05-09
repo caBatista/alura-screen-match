@@ -1,5 +1,6 @@
 package br.com.alura.screenmatch.repository;
 
+import br.com.alura.screenmatch.model.Genre;
 import br.com.alura.screenmatch.model.Series;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,4 +15,6 @@ public interface SeriesRepository extends JpaRepository<Series, Long> {
 	List<Series> findTop5ByOrderByRatingDesc();
 	
 	List<Series> findByOrderByEpisodesReleaseDateDesc();
+	
+	List<Series> findByGenre(Genre genre);
 }

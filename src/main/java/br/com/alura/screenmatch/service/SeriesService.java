@@ -2,6 +2,7 @@ package br.com.alura.screenmatch.service;
 
 import br.com.alura.screenmatch.dto.EpisodeDTO;
 import br.com.alura.screenmatch.dto.SeriesDTO;
+import br.com.alura.screenmatch.model.Genre;
 import br.com.alura.screenmatch.model.Series;
 import br.com.alura.screenmatch.repository.SeriesRepository;
 import java.util.Collections;
@@ -95,5 +96,11 @@ public class SeriesService {
 		} else {
 			return Collections.emptyList();
 		}
+	}
+	
+	public List<SeriesDTO> findSeriesByCategory(String category) {
+		var genre = Genre.fromString(category);
+		
+		return convertToDTO(repository.findByGenre(genre));
 	}
 }

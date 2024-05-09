@@ -7,7 +7,8 @@ public enum Genre {
 	DRAMA,
 	CRIME,
 	ANIMATION,
-	BIOGRAPHY;
+	BIOGRAPHY,
+	ADVENTURE;
 
 	public static Genre fromString(String text) {
 		text = text.toUpperCase();
